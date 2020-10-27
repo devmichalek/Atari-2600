@@ -16,9 +16,10 @@ Start:
 ; ---------------------------------------------------------------
 	lda #0		; A = 0
 	ldx #$FF		; X = #$FF
+	sta $FF		; Make sure $FF is zeroed before the loop start
 ClearLoop:
-	sta $0,X 	; Store zero (value hold by acumulator - register A) at address $0 + X
 	dex		; Decrement X
+	sta $0,X 	; Store zero (value hold by acumulator - register A) at address $0 + X
 	bne ClearLoop	; Loop until X is equal to 0 (z-flag set)
 
 ; ---------------------------------------------------------------
