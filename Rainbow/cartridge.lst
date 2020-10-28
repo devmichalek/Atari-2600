@@ -1,8 +1,8 @@
 ------- FILE rainbow.asm LEVEL 1 PASS 1
       1  0000					      processor	6502
       2  0000 ????
-------- FILE vcs.h LEVEL 2 PASS 1
-      0  0000 ????				      include	"vcs.h"
+------- FILE ../vcs.h LEVEL 2 PASS 1
+      0  0000 ????				      include	"../vcs.h"
       1  0000 ????						; VCS.H
       2  0000 ????						; Version 1.05, 13/November/2003
       3  0000 ????
@@ -204,8 +204,8 @@
     199  0000 ????
     200  0000 ????						; EOF
 ------- FILE rainbow.asm
-------- FILE macro.h LEVEL 2 PASS 1
-      0  0000 ????				      include	"macro.h"
+------- FILE ../macro.h LEVEL 2 PASS 1
+      0  0000 ????				      include	"../macro.h"
       1  0000 ????						; MACRO.H
       2  0000 ????						; Version 1.06, 3/SEPTEMBER/2004
       3  0000 ????

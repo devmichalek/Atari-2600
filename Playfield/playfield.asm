@@ -3,8 +3,8 @@
 ; ---------------------------------------------------------------
 ; Include required files with definitions and macros
 ; ---------------------------------------------------------------
-	include "vcs.h"
-	include "macro.h"
+	include "../vcs.h"
+	include "../macro.h"
 
 ; ---------------------------------------------------------------
 ; Start our ROM code

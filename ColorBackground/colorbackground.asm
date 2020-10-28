@@ -1,7 +1,7 @@
 	processor 6502
 
-	include "vcs.h"
-	include "macro.h"
+	include "../vcs.h"
+	include "../macro.h"
 
 	seg code
 	org $f000	; Defines the origin of the ROM ar $F000

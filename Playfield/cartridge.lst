@@ -1,11 +1,11 @@
-------- FILE main.asm LEVEL 1 PASS 1
+------- FILE playfield.asm LEVEL 1 PASS 1
       1  0000					      processor	6502
       2  0000 ????
       3  0000 ????						; ---------------------------------------------------------------
       4  0000 ????						; Include required files with definitions and macros
       5  0000 ????						; ---------------------------------------------------------------
-------- FILE vcs.h LEVEL 2 PASS 1
-      0  0000 ????				      include	"vcs.h"
+------- FILE ../vcs.h LEVEL 2 PASS 1
+      0  0000 ????				      include	"../vcs.h"
       1  0000 ????						; VCS.H
       2  0000 ????						; Version 1.05, 13/November/2003
       3  0000 ????
@@ -206,9 +206,9 @@
     198  0000 ????				      SEG
     199  0000 ????
     200  0000 ????						; EOF
-------- FILE main.asm
-------- FILE macro.h LEVEL 2 PASS 1
-      0  0000 ????				      include	"macro.h"
+------- FILE playfield.asm
+------- FILE ../macro.h LEVEL 2 PASS 1
+      0  0000 ????				      include	"../macro.h"
       1  0000 ????						; MACRO.H
       2  0000 ????						; Version 1.06, 3/SEPTEMBER/2004
       3  0000 ????
@@ -385,7 +385,7 @@
     174  0000 ????				      ENDM
     175  0000 ????
     176  0000 ????						; EOF
-------- FILE main.asm
+------- FILE playfield.asm
       8  0000 ????
       9  0000 ????						; ---------------------------------------------------------------
      10  0000 ????						; Start our ROM code
