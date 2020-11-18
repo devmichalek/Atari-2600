@@ -7,7 +7,7 @@
 	include "../macro.h"
 
 ; --------------------------------------------------------------------
-; Declare the variable starting from memory address $80
+; Declare variables starting from memory address $80
 ; --------------------------------------------------------------------
 	seg.u Variables
 	org $80
@@ -20,6 +20,7 @@ JetSpritePtr	word		; Pointer to player0 sprite lookup table
 JetColorPtr	word		; Pointer to player0 color lookup table
 BomberSpritePtr	word		; Pointer to player1 sprite lookup table
 BomberColorPtr	word		; Pointer to player1 color lookup table
+JetAnimOffset	byte		; Player0 sprite frame offset for animation
 
 ; --------------------------------------------------------------------
 ; Define constants
@@ -40,14 +41,14 @@ Reset:
 ; --------------------------------------------------------------------
 ; Initialize RAM variables and TIA registers
 ; --------------------------------------------------------------------
+	lda #68
+	sta JetXPos		; JetXPos = 68
 	lda #10
 	sta JetYPos		; JetYPos = 10
-	lda #60
-	sta JetXPos		; JetXPos = 60
+	lda #62
+	sta BomberXPos		; BomberXPos = 62
 	lda #83
 	sta BomberYPos		; BomberYPos = 83
-	lda #54
-	sta BomberXPos		; BomberXPos = 54
 
 ; --------------------------------------------------------------------
 ; Initialize pointers to the correct lookup table addresses
@@ -56,25 +57,40 @@ Reset:
 	sta JetSpritePtr		; lo-byte pointer for jet sprite lookup table
 	lda #>JetSprite
 	sta JetSpritePtr+1	; hi-byte pointer for jet sprite lookup table
+
 	lda #<JetColor
-	sta JetColorPtr		; lo-byte pointer for jet color table
+	sta JetColorPtr		; lo-byte pointer for jet color lookup table
 	lda #>JetColor
-	sta JetColorPtr+1		; hi-byte pointer for jet color table
+	sta JetColorPtr+1		; hi-byte pointer for jet color lookup table
 
 	lda #<BomberSprite
 	sta BomberSpritePtr	; lo-byte pointer for bomber sprite lookup table
 	lda #>BomberSprite
 	sta BomberSpritePtr+1	; hi-byte pointer for bomber sprite lookup table
+
 	lda #<BomberColor
-	sta BomberColorPtr	; lo-byte pointer for bomber color table
+	sta BomberColorPtr	; lo-byte pointer for bomber color lookup table
 	lda #>BomberColor
-	sta BomberColorPtr+1	; hi-byte pointer for bomber color table
+	sta BomberColorPtr+1	; hi-byte pointer for bomber color lookup table
 
 ; --------------------------------------------------------------------
 ; Start the main display loop and frame rendering
 ; --------------------------------------------------------------------
 StartFrame:
 
+; --------------------------------------------------------------------
+; Calculations and tasks performed in the pre-VBLANK
+; --------------------------------------------------------------------
+	lda JetXPos
+	ldy #0
+	jsr SetObjectXPos		; Set Player0 horizontal position
+
+	lda BomberXPos
+	ldy #1
+	jsr SetObjectXPos		; Set Player1 horizontal position
+
+	sta WSYNC
+	sta HMOVE		; Apply the horizontal offsets that was set previously
 
 ; --------------------------------------------------------------------
 ; Display VSYNC and VBLANK
@@ -120,6 +136,8 @@ GameVisibleLine:
 	bcc .DrawSpriteP0		; If result < SpriteHeight. call the draw routine
 	lda #0			; else, set lookup index to zero
 .DrawSpriteP0
+	clc			; Clear carry flag before addition
+	adc JetAnimOffset		; Jump to the correct sprite fram address in memory
 	tay			; Transfer A to Y
 	lda (JetSpritePtr),Y	; Load Player0 bitmap data from lookup table
 	sta WSYNC		; Wait for scanline
@@ -159,9 +177,59 @@ GameVisibleLine:
 	sta VBLANK 		; Turn VBLANK off
 
 ; --------------------------------------------------------------------
+; Process joystick input for Player0
+; --------------------------------------------------------------------
+CheckP0Up:
+	lda #%00010000		; Player0 joystick up
+	bit SWCHA
+	bne CheckP0Down		; If bit pattern does not match, by pass this block
+	inc JetYPos
+
+CheckP0Down:
+	lda #%00100000		; Player0 joystick down
+	bit SWCHA
+	bne CheckP0Left		; If bit pattern does not match, by pass this block
+	dec JetYPos
+
+CheckP0Left:
+	lda #%01000000		; Player0 joystick left
+	bit SWCHA
+	bne CheckP0Right		; If bit pattern does not match, by pass this block
+	dec JetXPos
+
+CheckP0Right:
+	lda #%10000000		; Player0 joystick right
+	bit SWCHA
+	bne EndInputCheck		; If bit pattern does not match, by pass this block
+	inc JetXPos
+
+EndInputCheck:			; Fallback when no input was performed
+
+; --------------------------------------------------------------------
 ; Loop back to start a brand new frame
 ; --------------------------------------------------------------------
 	jmp StartFrame		; Continue to display the next frame
+
+; --------------------------------------------------------------------
+; Subroutine to handle object horizontal position with fine offset
+; --------------------------------------------------------------------
+; A is the target x-coordinate position in pixels of our object
+; Y is the object type (0:player0, 1:player1, 2:missile0, 3:missile1, 4:ball)
+; --------------------------------------------------------------------
+SetObjectXPos subroutine
+	sta WSYNC		; Start a fresh new scanline
+	sec			; Make sure carry-flag is set before subtracion
+.Div15Loop
+	sbc #15			; Subtract 15 from accumulator
+	bcs .Div15Loop		; Loop until carry-flag is clear
+	eor #7			; Handle offset range from -8 to 7
+	asl
+	asl
+	asl
+	asl			; Four shift lefts to get only the top 4 bits
+	sta HMP0,Y		; Store the fine offset to the correct HMxx
+	sta RESP0,Y		; Fix object position in 15-step increment
+	rts
 
 ; --------------------------------------------------------------------
 ; Declare ROM lookup tables
