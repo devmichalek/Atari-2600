@@ -93,7 +93,7 @@ StartFrame:
 	sta VBLANK
 
 ; --------------------------------------------------------------------
-; Dispaly the 192 visible scanlines of our main game
+; Dispaly the 96 visible scanlines of our main game (2-line kernel)
 ; --------------------------------------------------------------------
 GameVisibleLine:
 	lda #$84			; Set background color to blue
@@ -110,9 +110,40 @@ GameVisibleLine:
 	lda #0
 	sta PF2			; Setting PF2 (playfield) bit pattern
 
-	ldx #192			; X counts the number of remaining scanline
+	ldx #96			; X counts the number of remaining scanline
 .GameLineLoop
-	sta WSYNC
+.AreWeInsideJetSprite:
+	txa			; Transfer X to A
+	sec			; Make sure carry flag is set before substraction
+	sbc JetYPos		; Substract sprite Y-coordinate
+	cmp JET_HEIGHT		; Compare with height
+	bcc .DrawSpriteP0		; If result < SpriteHeight. call the draw routine
+	lda #0			; else, set lookup index to zero
+.DrawSpriteP0
+	tay			; Transfer A to Y
+	lda (JetSpritePtr),Y	; Load Player0 bitmap data from lookup table
+	sta WSYNC		; Wait for scanline
+	sta GRP0			; Set graphics for Player0
+	lda (JetColorPtr),Y	; Load Player0 color from lookup table
+	sta COLUP0		; Set color of Player0
+
+.AreWeInsideBomberSprite:
+	txa			; Transfer X to A
+	sec			; Make sure carry flag is set before substraction
+	sbc BomberYPos		; Substract sprite Y-coordinate
+	cmp BOMBER_HEIGHT		; Compare with height
+	bcc .DrawSpriteP1		; If result < SpriteHeight. call the draw routine
+	lda #0			; else, set lookup index to zero
+.DrawSpriteP1
+	tay			; Transfer A to Y
+	lda #%00000101
+	sta NUSIZ1		; Stretch Player1 sprite
+	lda (BomberSpritePtr),Y	; Load Player1 bitmap data from lookup table
+	sta WSYNC		; Wait for scanline
+	sta GRP1			; Set graphics for Player1
+	lda (BomberColorPtr),Y	; Load Player1 color from lookup table
+	sta COLUP1		; Set color of Player1
+
 	dex			; X--
 	bne .GameLineLoop		; Repeat next main game scanline until finished
 
